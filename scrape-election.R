@@ -2,6 +2,7 @@ library(tidyverse)
 library(rvest)
 library(RSelenium)
 
+
 url <- "https://ballotpedia.org/Pennsylvania_House_of_Representatives_elections,_2016"
 
 # START SELENIUM SERVER FIRST BEFORE RUNNING THIS
@@ -20,7 +21,8 @@ page_text <- read_html(browser$getPageSource()[[1]]) %>%
   paste(., collapse = "")
 
 results <- read.delim(text = page_text, header = FALSE,
-                      col.names = c("indep", "dem", "rep"))
+                      col.names = c("indep", "dem", "rep"),
+                      stringsAsFactors = FALSE)
 
 # move independents up a row
 indeps <- results %>% 
@@ -34,4 +36,31 @@ all <- results %>%
   select(-indep) %>% 
   left_join(indeps, by = "row_number") %>% 
   select(-row_number) %>% 
-  mutate(distict = row_number())
+  mutate(district = row_number(),
+         indep = if_else(district == length(district), NA_character_, indep))
+
+votes <- all %>% 
+  mutate_at(vars(dem, rep, indep), function(x) str_replace_all(x, ",", "")) %>%
+  mutate_at(vars(dem, rep, indep), function(x) str_extract(x, "\\d+")) %>% 
+  rename(dem_votes = dem, rep_votes = rep, indep_votes = indep) %>% 
+  mutate_at(vars(ends_with("votes")), as.numeric)
+
+all_votes <- all %>% 
+  mutate_at(vars(dem, rep, indep), function(x) str_replace_all(x, ",", "")) %>% 
+  mutate_at(vars(dem, rep, indep), function(x) str_replace_all(x, ": \\d+", "")) %>% 
+  mutate_at(vars(dem, rep, indep), function(x) str_replace(x, " \\(I\\)", "")) %>% 
+  mutate_at(vars(dem, rep, indep), trimws) %>% 
+  mutate_at(vars(dem, rep, indep), function(x) str_replace(x, " a$|  a$", "")) %>% 
+  full_join(votes, by = "district") %>% 
+  replace_na(list(dem_votes = 0, rep_votes = 0, indep_votes = 0)) %>% 
+  mutate(
+    pct_dem = dem_votes / (dem_votes + rep_votes + indep_votes),
+    pct_dem = case_when(
+      is.nan(pct_dem) & dem == "No candidate" ~ 0,
+      is.nan(pct_dem) & rep == "No candidate" ~ 1,
+      TRUE ~ pct_dem
+    )
+  )
+
+dems <- all_votes %>% 
+  filter(pct_dem > 0.5)
