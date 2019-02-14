@@ -10,14 +10,28 @@ url <- "https://www.legis.state.pa.us/CFDOCS/Legis/RC/Public/rc_view_action2.cfm
 browser <- remoteDriver(port = 5556, browser = "phantomjs")
 browser$open(silent = FALSE)
 
-browser$navigate(url)
+scrape_votes <- function(url, bill) {
   
-yays <- read_html(browser$getPageSource()[[1]]) %>% 
-  html_nodes(".icon-thumbs-up") %>% 
-  html_text() %>% 
-  trimws()
+  browser$navigate(url)
+  
+  yays <- read_html(browser$getPageSource()[[1]]) %>% 
+    html_nodes(".icon-thumbs-up") %>% 
+    html_text() %>% 
+    trimws()
+  
+  nays <- read_html(browser$getPageSource()[[1]]) %>% 
+    html_nodes(".icon-thumbs-up-2") %>% 
+    html_text() %>% 
+    trimws()
+  
+  tibble(
+    bill = bill,
+    rep = c(yays, nays),
+    vote = c(rep("yay", length(yays)), rep("nay", length(nays)))
+  )
 
-nays <- read_html(browser$getPageSource()[[1]]) %>% 
-  html_nodes(".icon-thumbs-up-2") %>% 
-  html_text() %>% 
-  trimws()
+}
+
+safe_votes <- safely(scrape_votes)
+
+safe_votes(url, "2154")
