@@ -2,18 +2,18 @@ replicating [this](https://www.dataforprogress.org/par-scores/) for the Pennsylv
 
 ## key bills
 
-## Education
+### Education
 
 - HB178: lay teachers off based on evaluations
 - HB97: charter school limits
 - EITC
 
-## environment and drilling
+### environment and drilling
 
 - HB 107: allow gas distrubtion compaines to add a surchage to help pay for new pipelines
 - HB 2154: roll back regulations on oil and gas drilling
 
-## gun control
+### gun control
 
 - HB 2060: taking away guns from domestic abusers
 - HB 273: voluntarily put self on no-buy firearm list
@@ -40,8 +40,9 @@ replicating [this](https://www.dataforprogress.org/par-scores/) for the Pennsylv
 - HB 2241: kill Philaldephia Beverage Tax
 - HB 110: limits spending growth
 - overturn departemnt of revenue ruling disallowing deduction of capital business expenses
+- HB 76: property tax independence act
 
-## Other topics
+### Other topics
 
 - HB 2138: requiring work to get Medicaid
 - HB 2050: banning abortions for fetuses with Downs syndrome
