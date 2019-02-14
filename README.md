@@ -4,8 +4,9 @@ replicating [this](https://www.dataforprogress.org/par-scores/) for the Pennsylv
 
 ### Education
 
-- HB178: lay teachers off based on evaluations
-- HB97: charter school limits
+- HB 178: lay teachers off based on evaluations
+- HB 97: charter school limits
+- HB 2501: push education money through formula
 - EITC
 
 ### environment and drilling
@@ -43,6 +44,7 @@ replicating [this](https://www.dataforprogress.org/par-scores/) for the Pennsylv
 - HB 76: property tax independence act
 
 ### Other topics
+- HB 2477: medical marijuana research
 
 - HB 2138: requiring work to get Medicaid
 - HB 2050: banning abortions for fetuses with Downs syndrome
