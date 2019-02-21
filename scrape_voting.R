@@ -1,7 +1,9 @@
 library(tidyverse)
 library(rvest)
+library(RSelenium)
+library(googledrive)
 
-url <- "https://www.legis.state.pa.us/CFDOCS/Legis/RC/Public/rc_view_action2.cfm?sess_yr=2017&sess_ind=0&rc_body=H&rc_nbr=1271"
+# functions -------------------------
 
 # START SELENIUM SERVER FIRST BEFORE RUNNING THIS
 # in terminal: "java -jar selenium-server-standalone-2.53.1.jar -port 5556"
@@ -24,14 +26,28 @@ scrape_votes <- function(url, bill) {
     html_text() %>% 
     trimws()
   
-  tibble(
+  votes <- tibble(
     bill = bill,
     rep = c(yays, nays),
     vote = c(rep("yay", length(yays)), rep("nay", length(nays)))
   )
+  
+  votes[votes$rep != "", ]
 
 }
 
-safe_votes <- safely(scrape_votes)
+# import bills and url ------------------------
 
-safe_votes(url, "2154")
+drive_download(
+  as_id("1wmfqOo1KQWru6puuqdkWR9CGramN_xfqwYBNUVlOSRM"),
+  here::here("data/pa house bills 2017-18.csv"),
+  overwrite = TRUE
+)
+
+bills <- read_csv(here::here("data/pa house bills 2017-18.csv"))
+
+# scrape and write ---------------------------
+
+bill_votes <- map2_dfr(bills$url, bills$bill, scrape_votes)
+
+write_csv(bill_votes, here::here("data/bill_votes.csv"))
