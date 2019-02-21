@@ -62,5 +62,4 @@ all_votes <- all %>%
     )
   )
 
-dems <- all_votes %>% 
-  filter(pct_dem > 0.5)
+write_csv(all_votes, here::here("data/election_results.csv"))
