@@ -1,0 +1,109 @@
+---
+title: "results-votes"
+author: "Joe Ciesielski"
+date: "2/27/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+
+library(tidyverse)
+library(tidymodels)
+
+theme_set(theme_minimal())
+
+bill_votes <- read_csv(here::here("data/bill_votes.csv"))
+
+bills <- read_csv(here::here("data/pa house bills 2017-18.csv"))
+
+election <- read_csv(here::here("data/election_results.csv"))
+
+vote_names <- read_csv(here::here("data/votes_names.csv"))
+
+```
+
+```{r}
+
+reps <- election %>% 
+  mutate(
+    representative = case_when(
+      pct_dem > 0.5 ~ dem,
+      pct_dem < 0.5 ~ rep,
+      TRUE ~ NA_character_
+    ),
+    pct_win = case_when(
+      representative == dem ~ pct_dem,
+      representative == rep ~ 1 - pct_dem,
+      TRUE ~ NA_real_
+    ),
+    party = case_when(
+      pct_dem > 0.5 ~ "dem",
+      pct_dem < 0.5 ~ "rep",
+      TRUE ~ NA_character_ 
+    )
+  ) %>% 
+  select(representative, pct_win, party) %>% 
+  left_join(vote_names, by = c("representative" = "election_name"))
+
+bill_votes_progressive <- bill_votes %>% 
+  left_join(bills %>% select(bill, topic, progressive), by = "bill")
+
+win_share_voting <- bill_votes_progressive %>% 
+  left_join(reps, by = c("rep" = "vote_name")) %>% 
+  mutate(
+    prog_vote = case_when(
+      vote == "yay" & progressive == 1 ~ 1L,
+      vote == "nay" & progressive == -1 ~ 1L,
+      vote == "yay" & progressive == -1 ~ 0L,
+      vote == "nay" & progressive == 1 ~ 0L,
+      TRUE ~ NA_integer_
+    )
+  )
+
+missing_election_data <- win_share_voting %>% 
+  filter(is.na(pct_win)) %>% 
+  distinct(rep)
+
+```
+
+## Modeling
+
+```{r}
+
+rep_prog_votes <- win_share_voting %>% 
+  filter(!is.na(pct_win)) %>% 
+  group_by(rep, pct_win, party) %>% 
+  summarise(prog_votes = mean(prog_vote))
+
+rep_prog_votes %>% 
+  ggplot(aes(pct_win, prog_votes, color = party)) +
+    geom_point()
+
+```
+
+prediction
+
+```{r}
+
+prog_mod <- lm(prog_votes ~ pct_win:party, data = rep_prog_votes)
+
+prog_mod %>% 
+  broom::tidy()
+
+```
+
+```{r}
+
+augment(prog_mod) %>% 
+  ggplot(aes(pct_win, .fitted, color = party)) +
+    geom_point() +
+    geom_line() +
+    scale_y_continuous(limits = c(0,1), labels = scales::percent_format())
+
+```
+
+

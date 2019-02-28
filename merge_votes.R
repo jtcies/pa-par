@@ -17,3 +17,4 @@ election %>%
   mutate(name = str_split(dem, " "),
          name = lapply(name, "[", -1)) %>% View()
   
+
