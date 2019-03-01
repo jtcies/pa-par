@@ -13,8 +13,8 @@ knitr::opts_chunk$set(echo = TRUE)
 
 library(tidyverse)
 library(tidymodels)
-
-theme_set(theme_minimal())
+library(jtcr)
+library(plotly)
 
 bill_votes <- read_csv(here::here("data/bill_votes.csv"))
 
@@ -81,7 +81,9 @@ rep_prog_votes <- win_share_voting %>%
 
 rep_prog_votes %>% 
   ggplot(aes(pct_win, prog_votes, color = party)) +
-    geom_point()
+    geom_point() +
+    theme_jtc() +
+    color_jtc("color")
 
 ```
 
@@ -102,8 +104,43 @@ augment(prog_mod) %>%
   ggplot(aes(pct_win, .fitted, color = party)) +
     geom_point() +
     geom_line() +
-    scale_y_continuous(limits = c(0,1), labels = scales::percent_format())
+    scale_y_continuous(limits = c(0,1), labels = scales::percent_format()) +
+    theme_jtc() +
+    color_jtc("color")
 
 ```
 
+
+```{r}
+
+dem_prog_pred <- data.frame(
+  rep_prog_votes,
+  augment(prog_mod)
+) %>% 
+  filter(party == "dem")
+
+plot_text <- sprintf(
+  "%s<br>election pct: %.2f <br>predicted: %.2f <br>residual: %.2f", 
+  dem_prog_pred$rep, 
+  dem_prog_pred$pct_win,
+  dem_prog_pred$.fitted,
+  dem_prog_pred$.resid
+)
+
+resid_plot <- dem_prog_pred %>% 
+  mutate(rep = fct_reorder(rep, .resid)) %>% 
+  ggplot(aes(pct_win, prog_votes)) +
+    geom_point(aes(text = plot_text), color = "#002868") +
+    geom_line(aes(y = .fitted), linetype = 3, color = "#002868") +
+    scale_x_continuous(labels = scales::percent_format(2)) + 
+    expand_limits(y = 0) + 
+    theme_jtc() +
+    labs(
+      title = "Plenty of Democrats are less progressive than their win share predicts",
+      x = "election win share",
+      y = "proportion of progressive votes"
+    )
+    
+ggplotly(resid_plot, tooltip = "text")
+```
 
