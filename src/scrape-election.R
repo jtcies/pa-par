@@ -2,7 +2,6 @@ library(tidyverse)
 library(rvest)
 library(RSelenium)
 
-
 url <- "https://ballotpedia.org/Pennsylvania_House_of_Representatives_elections,_2016"
 
 # START SELENIUM SERVER FIRST BEFORE RUNNING THIS
@@ -63,3 +62,4 @@ all_votes <- all %>%
   )
 
 write_csv(all_votes, here::here("data/election_results.csv"))
+
