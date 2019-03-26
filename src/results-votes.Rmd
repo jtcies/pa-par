@@ -69,6 +69,8 @@ win_share_voting <- bill_votes_progressive %>%
     )
   )
 
+write_csv(win_share_voting, here::here("data/pahouse2016_votes_by_win_share.csv"))
+
 missing_election_data <- win_share_voting %>% 
   filter(is.na(pct_win)) %>% 
   distinct(rep)
@@ -159,3 +161,87 @@ glm(rep_2018 ~ .resid, family = "binomial", data = dem_prog_pred) %>%
 ```
 
 Not really.
+
+```{r}
+all_prog_pred <- data.frame(
+  rep_prog_votes,
+  augment(prog_mod)
+)
+
+plot_text <- sprintf(
+  "%s<br>election pct: %.2f <br>predicted: %.2f <br>residual: %.2f", 
+  all_prog_pred$rep, 
+  all_prog_pred$pct_win,
+  all_prog_pred$.fitted,
+  all_prog_pred$.resid
+)
+
+all_resid_plot <- all_prog_pred %>% 
+  mutate(rep = fct_reorder(rep, .resid)) %>% 
+  ggplot(aes(pct_win, prog_votes, color = party)) +
+    geom_jitter(aes(text = plot_text, alpha = rep_2018)) +
+    geom_line(aes(y = .fitted), linetype = 3) +
+    scale_x_continuous(labels = scales::percent_format(2)) + 
+    expand_limits(y = 0) + 
+    theme_jtc() +
+    labs(
+      x = "election win share",
+      y = "proportion of progressive votes"
+    )
+    
+ggplotly(all_resid_plot, tooltip = "text")
+
+```
+
+```{r}
+glm(rep_2018 ~ .resid:party, family = "binomial", data = all_prog_pred) %>% 
+  broom::tidy()
+```
+
+Notes:
+
+### Reps more progressive than expected
+
+```{r}
+
+all_prog_pred %>% 
+  filter(party == "rep") %>% 
+  arrange(desc(.resid)) %>% 
+  head(5)
+
+```
+
+- Murt
+  - Montco
+  - moderate, received endorsements from unions and decent [ratings](https://votesmart.org/candidate/58360/thomas-murt) from environmental groups
+
+### Reps less progressive than expected
+
+```{r}
+
+all_prog_pred %>% 
+  filter(party == "rep") %>% 
+  arrange(.resid) %>% 
+  head(5)
+
+```
+
+### Dems more progressive than expected
+
+```{r}
+
+all_prog_pred %>% 
+  filter(party == "dem") %>% 
+  arrange(desc(.resid)) %>% 
+  head(5)
+
+```
+
+### Dems less progressive than expected
+
+```{r}
+all_prog_pred %>% 
+  filter(party == "dem") %>% 
+  arrange(.resid) %>% 
+  head(5)
+```
