@@ -1,8 +1,12 @@
 replicating [this](https://www.dataforprogress.org/par-scores/) for the Pennsylvania House
 
-## key bills
+## Bills included
 
-### Education
+
+
+## Other key bills
+
+### education
 
 - HB 178: lay teachers off based on evaluations
 - HB 97: charter school limits
